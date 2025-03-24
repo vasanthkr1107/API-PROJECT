@@ -1,0 +1,417 @@
+Project Summary: Event Organizer portal
+The Event Organizer Portal is a Spring Boot application designed to manage event operations effectively. The system includes features for managing User, Event, Venue & Organizer. Key functionalities include CRUD operations, pagination, sorting, and JPQL queries for optimized data access. The project adheres to best practices by leveraging modular design and annotations for maintainability.
+
+Modules and Features:
+Entities: Define relationships and attributes.
+Repositories: Enable data access and querying using Spring Data JPA.
+CRUD Operations: Comprehensive functionality to create, read, update, and delete records.
+Pagination and Sorting: Implemented for efficient data management and presentation.
+JPQL Queries: Provide custom methods for advanced data retrieval.
+Swagger Integration: Offers interactive API documentation for testing endpoints.
+AOP Integration: Implements logging and method-level aspect-oriented programming (AOP) configurations.
+Logging: Logs application events for debugging and monitoring.
+Annotations: Includes Lombok for boilerplate code reduction and JSON annotations for serialization/deserialization.
+Test Cases: Extensive JUnit tests to validate controllers, repositories, annotations, and configurations.
+This project ensures scalability and ease of use, making it suitable for varying-size libraries. It follows industry standards and practices for robust application development.
+
+
+Folder Structure:
+
+
+
+
+
+Entities and Attributes
+User
+id (Primary Key): Long
+username (Unique): String
+email: String
+events (One-to-many relationship with Event)
+Organizer
+id (Primary Key): Long
+name: String
+events (One-to-many relationship with Event)
+Event
+id (Primary Key): Long
+eventName (Unique): String
+location: String
+date: String
+time: String
+availableSeats: int
+organizer (Many-to-one relationship with Organizer)
+venue (Many-to-one relationship with Venue)
+Venue
+id (Primary Key): Long
+name (Unique): String
+location: String
+capacity: int
+events (One-to-many relationship with Event)
+
+Relationships
+User ↔ Event
+Type: One-to-Many
+Explanation: Each User can create multiple Event records, but each Event record is associated with one User.
+Mapping:
+User: @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+Event: @ManyToOne
+Organizer ↔ Event
+Type: One-to-Many
+Explanation: Each Organizer manages multiple Events, but each Event is managed by one Organizer.
+Mapping:
+Organizer: @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL)
+Event: @ManyToOne
+Event ↔ Venue
+Type: Many-to-One
+Explanation: Each Event is associated with one Venue, but each Venue can host multiple Events.
+Mapping:
+Event: @ManyToOne
+Venue: @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL)
+
+ER Diagram
+[User] ----< (One-to-Many) >---- [Event] 
+
+[Organizer] ----< (One-to-Many) >---- [Event] 
+
+[Event] ----< (Many-to-One) >---- [Venue]
+
+
+Note on Mappings
+Add proper @JsonIgnore annotations where necessary to prevent recursive serialization in JSON responses.
+Use cascade = CascadeType.ALL in parent-child relationships to propagate persistence operations.
+Ensure @JoinColumn is appropriately set in the child entity to define the foreign key column.
+
+
+Venue Controller
+Base URL: /api/venues
+
+POST /api/venues
+Description: Create a new venue.
+Request Body: Venue object (JSON).
+Response: Created Venue object (JSON).
+Status Codes:
+200 OK – Venue created successfully.
+GET /api/venues
+Description: Get all venues.
+Response: List of Venue objects (JSON).
+Status Codes:
+200 OK – Venues retrieved successfully.
+GET /api/venues/{id}
+Description: Get a venue by ID.
+Request Params: id (Long) - Venue ID.
+Response: Venue object (JSON) if found.
+Status Codes:
+200 OK – Venue found.
+404 Not Found – Venue not found.
+PUT /api/venues/{id}
+Description: Update venue details.
+Request Params: id (Long) - Venue ID.
+Request Body: Venue object (JSON).
+Response: Updated Venue object (JSON).
+Status Codes:
+200 OK – Venue updated successfully.
+404 Not Found – Venue not found.
+DELETE /api/venues/{id}
+Description: Delete a venue by ID.
+Request Params: id (Long) - Venue ID.
+Response: No content.
+Status Codes:
+204 No Content – Venue deleted successfully.
+404 Not Found – Venue not found.
+
+User Controller
+Base URL: /api/users
+
+POST /api/users
+Description: Create a new user.
+Request Body: User object (JSON).
+Response: Created User object (JSON).
+Status Codes:
+200 OK – User created successfully.
+GET /api/users
+Description: Get all users.
+Response: List of User objects (JSON).
+Status Codes:
+200 OK – Users retrieved successfully.
+GET /api/users/{id}
+Description: Get a user by ID.
+Request Params: id (Long) - User ID.
+Response: User object (JSON) if found.
+Status Codes:
+200 OK – User found.
+404 Not Found – User not found.
+PUT /api/users/{id}
+Description: Update user details.
+Request Params: id (Long) - User ID.
+Request Body: User object (JSON).
+Response: Updated User object (JSON).
+Status Codes:
+200 OK – User updated successfully.
+404 Not Found – User not found.
+DELETE /api/users/{id}
+Description: Delete a user by ID.
+Request Params: id (Long) - User ID.
+Response: No content.
+Status Codes:
+204 No Content – User deleted successfully.
+404 Not Found – User not found.
+GET /api/users/paginate
+Description: Paginate and sort users.
+Request Params:
+page (int) - Page number (default: 0).
+size (int) - Page size (default: 10).
+Response: A paginated list of User objects.
+Status Codes:
+200 OK – Users retrieved successfully.
+
+Organizer Controller
+Base URL: /api/organizers
+
+POST /api/organizers
+Description: Create a new organizer.
+Request Body: Organizer object (JSON).
+Response: Created Organizer object (JSON).
+Status Codes:
+200 OK – Organizer created successfully.
+GET /api/organizers
+Description: Get all organizers.
+Response: List of Organizer objects (JSON).
+Status Codes:
+200 OK – Organizers retrieved successfully.
+GET /api/organizers/paginate
+Description: Paginate organizers.
+Request Params:
+page (int) - Page number (default: 0).
+size (int) - Page size (default: 10).
+Response: A paginated list of Organizer objects.
+Status Codes:
+200 OK – Organizers retrieved successfully.
+GET /api/organizers/{id}
+Description: Get an organizer by ID.
+Request Params: id (Long) - Organizer ID.
+Response: Organizer object (JSON) if found.
+Status Codes:
+200 OK – Organizer found.
+404 Not Found – Organizer not found.
+DELETE /api/organizers/{id}
+Description: Delete an organizer by ID.
+Request Params: id (Long) - Organizer ID.
+Response: No content.
+Status Codes:
+204 No Content – Organizer deleted successfully.
+404 Not Found – Organizer not found.
+
+Event Controller
+Base URL: /api/events
+
+POST /api/events
+Description: Create a new event.
+Request Body: Event object (JSON).
+Response: Created Event object (JSON).
+Status Codes:
+200 OK – Event created successfully.
+GET /api/events
+Description: Get all events (with pagination).
+Request Params: Pageable (page, size, sort).
+Response: Paginated list of Event objects (JSON).
+Status Codes:
+200 OK – Events retrieved successfully.
+GET /api/events/{id}
+Description: Get an event by ID.
+Request Params: id (Long) - Event ID.
+Response: Event object (JSON) if found.
+Status Codes:
+200 OK – Event found.
+404 Not Found – Event not found.
+PUT /api/events/{id}
+Description: Update event details.
+Request Params: id (Long) - Event ID.
+Request Body: Event object (JSON).
+Response: Updated Event object (JSON).
+Status Codes:
+200 OK – Event updated successfully.
+404 Not Found – Event not found.
+DELETE /api/events/{id}
+Description: Delete an event by ID.
+Request Params: id (Long) - Event ID.
+Response: No content.
+Status Codes:
+204 No Content – Event deleted successfully.
+404 Not Found – Event not found.
+
+
+Json Data for Entities:
+
+1. Venue
+{ "id": 1, "name": "Sunrise Yoga Studio", "location": "123 Yoga Lane, Harmony City, NY 10001", "capacity": 50 }
+
+2. User
+{ "id": 101, "username": "alicejohnson", "email": "alice.johnson@example.com" }
+
+3. Organizer
+{ "id": 201, "name": "Harmony Wellness Group" }
+
+4. Event
+{ "id": 301, "eventName": "Morning Yoga Retreat", "location": "Sunrise Yoga Studio, Harmony City", "date": "2025-02-15", "time": "08:00:00", "availableSeats": 50 }
+
+
+
+Test cases description
+
+Week-1, Week-2
+Test Case: contextLoads
+
+Purpose: Verify that the Spring application context loads correctly.
+Test Case: Annotation_testOrganizerHasLombokAnnotations
+
+Purpose: Verify that the Organizer entity contains Lombok annotations like @Data and @NoArgsConstructor.
+Test Case: Annotation_testEventHasLombokAnnotations
+
+Purpose: Verify that the Event entity contains Lombok annotations like @Data and @NoArgsConstructor.
+Test Case: Annotation_testOrganizerHasJSONIgnoreAnnotations
+
+Purpose: Verify that the Organizer entity contains the @JsonIgnore annotation for sensitive fields.
+Test Case: Annotation_testUserHasJSONIgnoreAnnotations
+
+Purpose: Verify that the User entity contains the @JsonIgnore annotation for sensitive fields.
+Test Case: Repository_testOrganizerRepository
+
+Purpose: Verify that the OrganizerRepository correctly interacts with the database and performs CRUD operations on the Organizer entity.
+Test Case: Repository_testEventRepository
+
+Purpose: Verify that the EventRepository correctly interacts with the database and performs CRUD operations on the Event entity.
+Test Case: Repository_testVenueRepository
+
+Purpose: Verify that the VenueRepository correctly interacts with the database and performs CRUD operations on the Venue entity.
+Test Case: Repository_testUserRepository
+
+Purpose: Verify that the UserRepository correctly interacts with the database and performs CRUD operations on the User entity.
+
+
+Week-3, Week-4
+Test Case: CRUD_testGetAllOrganizers
+
+Purpose: Verify that the getAllOrganizers() method in the OrganizerService correctly retrieves all Organizer entities.
+Test Case: CRUD_testGetOrganizerById
+
+Purpose: Verify that the getOrganizerById() method in the OrganizerService correctly retrieves a specific Organizer entity by its ID.
+Test Case: CRUD_testCreateOrganizer
+
+Purpose: Verify that the createOrganizer() method in the OrganizerService correctly creates and saves a new Organizer entity.
+Test Case: CRUD_testDeleteOrganizer
+
+Purpose: Verify that the deleteOrganizer() method in the OrganizerService correctly deletes an Organizer entity by its ID.
+Test Case: CRUD_testCreateEvent
+
+Purpose: Verify that the createEvent() method in the EventService correctly creates and saves a new Event entity.
+Test Case: CRUD_testGetEventById
+
+Purpose: Verify that the getEventById() method in the EventService correctly retrieves a specific Event entity by its ID.
+Test Case: CRUD_testUpdateEvent
+
+Purpose: Verify that the updateEvent() method in the EventService correctly updates an existing Event entity.
+Test Case: CRUD_testDeleteEvent
+
+Purpose: Verify that the deleteEvent() method in the EventService correctly deletes an Event entity by its ID.
+Test Case: CRUD_testCreateUser
+
+Purpose: Verify that the createUser() method in the UserService correctly creates and saves a new User entity.
+Test Case: CRUD_testGetUserById
+
+Purpose: Verify that the getUserById() method in the UserService correctly retrieves a specific User entity by its ID.
+Test Case: CRUD_testGetAllUsers
+
+Purpose: Verify that the getAllUsers() method in the UserService correctly retrieves all User entities.
+Test Case: CRUD_testUpdateUser
+
+Purpose: Verify that the updateUser() method in the UserService correctly updates an existing User entity.
+Test Case: CRUD_testDeleteUser
+
+Purpose: Verify that the deleteUser() method in the UserService correctly deletes a User entity by its ID.
+Test Case: CRUD_testCreateVenue
+
+Purpose: Verify that the createVenue() method in the VenueService correctly creates and saves a new Venue entity.
+Test Case: CRUD_testGetVenueById
+
+Purpose: Verify that the getVenueById() method in the VenueService correctly retrieves a specific Venue entity by its ID.
+Test Case: CRUD_testGetAll_Venues
+
+Purpose: Verify that the getAllVenues() method in the VenueService correctly retrieves all Venue entities.
+Test Case: CRUD_testUpdateVenue
+
+Purpose: Verify that the updateVenue() method in the VenueService correctly updates an existing Venue entity.
+Test Case: CRUD_testDeleteVenue
+
+Purpose: Verify that the deleteVenue() method in the VenueService correctly deletes a Venue entity by its ID.
+Test Case: CRUD_testPathVariableAnnotations
+
+Purpose: Verify that the @PathVariable annotation is used correctly in controller methods to bind path variables to method parameters.
+Test Case: CRUD_testRequestBodyAnnotations
+
+Purpose: Verify that the @RequestBody annotation is used correctly in controller methods to bind request bodies to method parameters.
+
+
+Week-6
+Test Case: JPQL_testFindByEmailEmpty
+
+Purpose: Verify that the UserRepository retrieves users with an empty email correctly.
+Test Case: JPQL_testFindByEmail
+
+Purpose: Verify that the UserRepository retrieves users by their email correctly.
+
+
+Week-7
+Test Case: PaginateSorting_testPaginateOrganizerController
+
+Purpose: Verify that the OrganizerController correctly handles pagination and sorting of Organizer data.
+Test Case: PaginateSorting_testPaginateOrganizerService
+
+Purpose: Verify that the OrganizerService correctly handles pagination and sorting of Organizer data.
+Test Case: PaginateSorting_testGetAllEventsWithPagination
+
+Purpose: Verify that the EventService correctly handles pagination and sorting of Event data.
+
+
+Week-8, Week-9
+Test Case: Mapping_testEntityHasOneToManyRelation
+
+Purpose: Ensure that the entity correctly defines a one-to-many relationship with other entities.
+Test Case: Mapping_testEntityHasJoinTable
+
+Purpose: Ensure that the entity correctly defines a join table for relationships.
+Test Case: Mapping_testEntityHasManyToMany
+
+Purpose: Ensure that the entity correctly defines a many-to-many relationship with other entities.
+Test Case: Mapping_testuserHasOneToMany
+
+Purpose: Verify that the User entity correctly defines a one-to-many relationship with other entities.
+Test Case: Mapping_testEventHasColumn
+
+Purpose: Ensure that the Event entity has the correct column annotations.
+Test Case: Mapping_testOrganizerHasOneToMany
+
+Purpose: Verify that the Organizer entity correctly defines a one-to-many relationship with other entities.
+
+
+Week-11
+Test Case: SwaggerUI_testConfigurationFolder
+
+Purpose: Verify that the configuration folder for Swagger UI exists and is correctly set up.
+Test Case: SwaggerUI_testSwaggerConfigFile
+
+Purpose: Verify that the Swagger config file exists and is correctly configured.
+
+
+Week-12
+Test Case: LOG_testLogFolderAndFileCreation
+
+Purpose: Verify that the log folder and log files are correctly created during runtime.
+
+
+Week-13
+Test Case: AOP_testAOPConfigFile
+
+Purpose: Ensure the AOP configuration file is present and set up correctly.
+Test Case: AOP_testAOPConfigFileAspect
+
+Purpose: Verify that the AOP configuration file includes the correct aspects, such as points and advice.
+
