@@ -22,8 +22,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "User Controller", description = "API for managing users")
 public class UserController {
 
     @Autowired
@@ -31,15 +37,27 @@ public class UserController {
 
     // Get all users with pagination and sorting
     @GetMapping
-    public Page<User> getAllUsers(@RequestParam(defaultValue = "0") int page, 
-                                    @RequestParam(defaultValue = "10") int size,
-                                    @RequestParam(defaultValue = "id") String sort) {
+    @Operation(summary = "Get All Users", description = "Retrieve all users with pagination and sorting support.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters")
+    })
+    public Page<User> getAllUsers(
+            @RequestParam(defaultValue = "0") int page, 
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sort) {
+        
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
         return userService.getAllUsers(pageable);
     }
 
     // Get user by ID
     @GetMapping("/{id}")
+    @Operation(summary = "Get User by ID", description = "Retrieve a specific user by its ID.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User found"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         Optional<User> user = userService.getUserById(id);
         return user.map(ResponseEntity::ok)
@@ -48,13 +66,26 @@ public class UserController {
 
     // Create a new user
     @PostMapping
+    @Operation(summary = "Create User", description = "Create a new user.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request body")
+    })
     public User createUser(@RequestBody User user) {
         return userService.createUser(user);
     }
 
     // Update user details
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    @Operation(summary = "Update User", description = "Update the details of an existing user.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User updated successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<User> updateUser(
+            @PathVariable Long id, 
+            @RequestBody User userDetails) {
+        
         try {
             User updatedUser = userService.updateUser(id, userDetails);
             return ResponseEntity.ok(updatedUser);
@@ -63,8 +94,13 @@ public class UserController {
         }
     }
 
-    // New method to find users by last name
+    // Find users by last name
     @GetMapping("/search")
+    @Operation(summary = "Find Users by Last Name", description = "Retrieve users by their last name.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Users found"),
+        @ApiResponse(responseCode = "404", description = "No users found with the provided last name")
+    })
     public ResponseEntity<List<User>> findByLastName(@RequestParam String lastName) {
         List<User> users = userService.findByLastName(lastName);
         return ResponseEntity.ok(users);
@@ -72,6 +108,11 @@ public class UserController {
 
     // Delete a user
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete User", description = "Delete a user by its ID.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         try {
             userService.deleteUser(id);
